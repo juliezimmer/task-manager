@@ -4,8 +4,10 @@
 //when the page document loads, the jquery will run.
 /* when the jquery runs, getTasks() is called and the DOM is loaded with all the tasks that have been created. */
 $(document).ready(function(){
-    getTasks(); //created below
+    getTasks(); 
+    getCategoryOptions();
 });
+
 
 //mLab data API Key
 const apiKey = "-W8VhtL4pBHmuuq_qTPey8YbooNJPnRc";
@@ -20,7 +22,7 @@ function getTasks() {
   $.get('https://api.mlab.com/api/1/databases/taskmanager/collections/tasks?apiKey='+apiKey, function(data){
     //output is the list of tasks from the collection.
     //'<ul class="list-group">'; is where the task list will be on the DOM.
-    let output = '<ul class="list-group">';
+    var output = '<ul class="list-group">';
     /*jQuery each loop will output each task from the collection and put it on     the DOM in a <li>.
       -"data" is the collection pulled from the database. */
     $.each(data, function(key, task) { 
@@ -43,5 +45,17 @@ function getTasks() {
     });
     output += '</ul>' /* When the tasks are done being put on the DOM, all items in array are done being iterated, add the closing <ul> tag as the last thing to append. */
     $('#tasks').html(output);
+  });
+}
+
+function getCategoryOptions() {
+  $.get('https://api.mlab.com/api/1/databases/taskmanager/collections/categories?apiKey='+apiKey, function(data){
+    var output;
+    
+    $.each(data, function(key, category) { 
+        output += '<option value="'+category.category_name+'">'+category.category_name+'</option>';
+    });
+    output += '</ul>'; 
+    $('#category').append(output);
   });
 }
