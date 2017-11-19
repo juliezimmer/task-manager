@@ -6,8 +6,15 @@
 $(document).ready(function(){
     getTasks(); 
     getCategoryOptions();
-});
+    
+  //event handler for submit events
+  //when addTask submit button is clicked, run the addTask() function.
+    $('#add_task').on('submit' , addTask); 
 
+  //event for when Edit button is clicked
+  //When the edit button is clicked, run the setTask() function.
+    $('body').on('click', '.btn-edit-task', setTask);
+});
 
 //mLab data API Key
 const apiKey = "-W8VhtL4pBHmuuq_qTPey8YbooNJPnRc";
@@ -41,12 +48,59 @@ function getTasks() {
             output += '<span class="label label-danger">Urgent</span>';
         } 
       /*This adds edit and delete buttons after each task that is put on the DOM. These buttons are added dynamically. */ 
-        output +='<div class="pull-right"><a class="btn btn-primary" href="#">Edit</a> <a class="btn btn-danger" href="#">Delete</a></div>'; 
+        output +='<div class="pull-right"> <a class="btn btn-primary btn-edit-task" data-task-name="'+task.task_name+'" data-task-id="'+task._id.$oid+'">Edit</a> <a class="btn btn-danger" href="#">Delete</a> </div>'; 
     });
     output += '</ul>' /* When the tasks are done being put on the DOM, all items in array are done being iterated, add the closing <ul> tag as the last thing to append. */
     $('#tasks').html(output);
   });
 }
+
+function addTask(e){
+  var task_name = $('#task_name').val();  
+  var category = $('#category').val();
+  var due_date = $('#due_date').val();
+  var is_urgent = $('#is_urgent').val();
+
+  //AJAX POST request
+  //url is the mLab Data API url
+  $.ajax({
+    url:'https://api.mlab.com/api/1/databases/taskmanager/collections/tasks?apiKey='+apiKey, 
+    data: JSON.stringify({
+      "task_name": task_name,
+      "category" : category,
+      "due_date": due_date,
+      "is_urgent": is_urgent
+    }),
+    type:'POST',
+    contentType: 'application/json',
+    success: function(data) {
+      //if the post request is successful, redirect user to index.html. 
+      window.location.href='index.html';
+    },
+    error: function(xhr, status, err){
+      console.log(err);
+    }
+  });
+  e.preventDefault();
+}
+
+// ***************** setTask() function *********************** //
+function setTask() {
+  var task_id = $(this).data('task-id');
+  //this is asking for the data attribute: data-task-id.
+  console.log("data-task-id is: ", task_id);
+  
+  //This task_id needs to be set to sessionStorage (local storage).
+  //This sets the current_id to the task_id variable.
+  sessionStorage.setItem('current_id', task_id);
+  
+  //redirect to the edit page
+  window.location.href='editTask.html';
+  return false; 
+}
+
+
+
 
 function getCategoryOptions() {
   $.get('https://api.mlab.com/api/1/databases/taskmanager/collections/categories?apiKey='+apiKey, function(data){
