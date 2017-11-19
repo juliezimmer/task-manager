@@ -5,20 +5,25 @@
 /* when the jquery runs, getTasks() is called and the DOM is loaded with all the tasks that have been created. */
 $(document).ready(function(){
     getTasks(); 
+    getCategories();
     getCategoryOptions();
     
-  //event handler for submit events
-  //when addTask submit button is clicked, run the addTask() function.
+  //when addTask submit button is clicked, the task() function runs.  
     $('#add_task').on('submit' , addTask); 
     $('#edit_task').on('submit' , editTask); 
-    
-  //event for when Edit button is clicked
+    $('#add_category').on('submit', addCategory); 
+    $('#edit_category').on('submit', editCategory); 
+  
   //When the edit button is clicked, run the setTask() function.
     $('body').on('click', '.btn-edit-task', setTask);
+    $('body').on('click', '.btn-delete-task', deleteTask);
+
+    $('body').on('click', '.btn-edit-category', setCategory);
+    $('body').on('click', '.btn-delete-category', deleteCategory);
 });
 
 //mLab data API Key
-const apiKey = "-W8VhtL4pBHmuuq_qTPey8YbooNJPnRc";
+const apiKey = 'ICgxyQZsg6-kqU3JoZNgrSF0h6nabV3Z';
 
 /*getTasks() that loads the DOM with all the tasks in the DB.
   -This involves the mLab Data API and the key variable above.
@@ -49,7 +54,7 @@ function getTasks() {
             output += '<span class="label label-danger">Urgent</span>';
         } 
       /*This adds edit and delete buttons after each task that is put on the DOM. These buttons are added dynamically. */ 
-        output +='<div class="pull-right"> <a class="btn btn-primary btn-edit-task" data-task-name="'+task.task_name+'" data-task-id="'+task._id.$oid+'">Edit</a> <a class="btn btn-danger" href="#">Delete</a> </div>'; 
+        output +='<div class="pull-right"> <a class="btn btn-primary btn-edit-task" data-task-name="'+task.task_name+'" data-task-id="'+task._id.$oid+'">Edit</a><a class="btn btn-danger btn-delete-task" data-task-id="'+task._id.$oid+'">Delete</a></div>'; 
     });
     output += '</ul>' /* When the tasks are done being put on the DOM, all items in array are done being iterated, add the closing <ul> tag as the last thing to append. */
     $('#tasks').html(output);
@@ -61,8 +66,6 @@ function addTask(e){
   var category = $('#category').val();
   var due_date = $('#due_date').val();
   var is_urgent = $('#is_urgent').val();
-
-  //AJAX POST request
   //url is the mLab Data API url
   $.ajax({
     url:'https://api.mlab.com/api/1/databases/taskmanager/collections/tasks?apiKey='+apiKey, 
@@ -75,7 +78,6 @@ function addTask(e){
     type:'POST',
     contentType: 'application/json',
     success: function(data) {
-      //if the post request is successful, redirect user to index.html. 
       window.location.href='index.html';
     },
     error: function(xhr, status, err){
@@ -85,33 +87,22 @@ function addTask(e){
   e.preventDefault();
 }
 
-// ***************** setTask() function *********************** //
 function setTask() {
   var task_id = $(this).data('task-id');
-  //this is asking for the data attribute: data-task-id.
-  console.log("data-task-id is: ", task_id);
-  
-  //This task_id needs to be set to sessionStorage (local storage).
-  //This sets the current_id to the task_id variable.
   sessionStorage.setItem('current_id', task_id);
-  
-  //redirect to the edit page
   window.location.href='editTask.html';
   return false; 
 }
 
-// ****************** getTask() function *********************//
-/*This functions fetches the task that needs to be edited and makes it available for editing. */
-function getTask() {
+function getTask(id) {
   $.get('https://api.mlab.com/api/1/databases/taskmanager/collections/tasks/'+id+'?apiKey='+apiKey, function(task){
       $('#task_name').val(task.task_name);
-      $('#category').val(task.category);
+      $('#category').find(task.category).attr("selected", true);
       $('#due_date').val(task.due_date);
       $('#is_urgent').val(task.is_urgent);
   });
 }
 
-// ***************** editTask() function ********************** //
 function editTask(e) {
   var task_id = sessionStorage.getItem('current_id');
   var task_name = $('#task_name').val();  
@@ -130,7 +121,6 @@ function editTask(e) {
     type:'PUT',
     contentType: 'application/json',
     success: function(data) {
-      //if the post request is successful, redirect user to index.html. 
       window.location.href='index.html';
     },
     error: function(xhr, status, err){
@@ -138,6 +128,22 @@ function editTask(e) {
     }
   });
   e.preventDefault();
+}
+
+function deleteTask() {
+  var task_id = $(this).data('task-id');
+  $.ajax({
+    url:'https://api.mlab.com/api/1/databases/taskmanager/collections/tasks/'+task_id+'?apiKey='+apiKey, 
+    type:'DELETE',
+    async: true,
+    contentType: 'application/json',
+    success: function(data) {
+      window.location.href='index.html';
+    },
+    error: function(xhr, status, err){
+      console.log(err);
+    }
+  });
 }
 
 function getCategoryOptions() {
@@ -149,5 +155,87 @@ function getCategoryOptions() {
     });
     output += '</ul>'; 
     $('#category').append(output);
+  });
+}
+
+function getCategories() {
+  $.get('https://api.mlab.com/api/1/databases/taskmanager/collections/categories?apiKey='+apiKey, function(data){
+    var output = '<ul class="list-group">';
+    $.each(data, function(key, category) { 
+        output += '<li class="list-group-item">'; 
+        output += category.category_name;
+        output +='<div class="pull-right"> <a class="btn btn-primary btn-edit-category" data-category-name="'+category.category_name+'" data-category-id="'+category._id.$oid+'">Edit</a><a class="btn btn-danger btn-delete-category" data-category-id="'+category._id.$oid+'">Delete</a></div>'; 
+    });
+    output += '</ul>'   
+    $('#categories').html(output);
+  });
+}
+
+function addCategory(e){
+  var category_name = $('#category_name').val();  
+  $.ajax({
+    url:'https://api.mlab.com/api/1/databases/taskmanager/collections/categories?apiKey='+apiKey, 
+    data: JSON.stringify({
+      "category_name" : category_name,
+    }),
+    type:'POST',
+    contentType: 'application/json',
+    success: function(data) {
+      window.location.href='categories.html';
+    },
+    error: function(xhr, status, err){
+      console.log(err);
+    }
+  });
+  e.preventDefault();
+}
+
+function setCategory() {
+  var category_id = $(this).data('category-id');
+  sessionStorage.setItem('current_id', category_id);
+  window.location.href='editCategory.html';
+  return false; 
+}
+
+function getCategory(id) {
+  $.get('https://api.mlab.com/api/1/databases/taskmanager/collections/categories/'+id+'?apiKey='+apiKey, function(category){
+      $('#category_name').val(category.category_name);
+      
+  });
+}
+
+function editCategory(e) {
+  var category_id = sessionStorage.getItem('current_id');
+  var category_name = $('#category_name').val();
+  $.ajax({
+    url:'https://api.mlab.com/api/1/databases/taskmanager/collections/categories/'+category_id+'?apiKey='+apiKey, 
+    data: JSON.stringify({
+      "category_name" : category_name,
+    }),
+    type:'PUT',
+    contentType: 'application/json',
+    success: function(data) {
+      window.location.href='categories.html';
+    },
+    error: function(xhr, status, err){
+      console.log(err);
+    }
+  });
+  e.preventDefault();
+}
+
+function deleteCategory() {
+  var category_id = $(this).data('category-id');
+  $.ajax({
+    url:'https://api.mlab.com/api/1/databases/taskmanager/collections/categories/'+category_id+'?apiKey='+apiKey, 
+    type:'DELETE',
+    async: true,
+    contentType: 'application/json',
+    success: function(data) {
+      window.location.href='categories.html';
+    },
+    error: function(xhr, status, err){
+      console.log(err);
+    }
   });
 }
