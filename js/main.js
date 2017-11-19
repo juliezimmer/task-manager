@@ -10,7 +10,8 @@ $(document).ready(function(){
   //event handler for submit events
   //when addTask submit button is clicked, run the addTask() function.
     $('#add_task').on('submit' , addTask); 
-
+    $('#edit_task').on('submit' , editTask); 
+    
   //event for when Edit button is clicked
   //When the edit button is clicked, run the setTask() function.
     $('body').on('click', '.btn-edit-task', setTask);
@@ -99,8 +100,45 @@ function setTask() {
   return false; 
 }
 
+// ****************** getTask() function *********************//
+/*This functions fetches the task that needs to be edited and makes it available for editing. */
+function getTask() {
+  $.get('https://api.mlab.com/api/1/databases/taskmanager/collections/tasks/'+id+'?apiKey='+apiKey, function(task){
+      $('#task_name').val(task.task_name);
+      $('#category').val(task.category);
+      $('#due_date').val(task.due_date);
+      $('#is_urgent').val(task.is_urgent);
+  });
+}
 
+// ***************** editTask() function ********************** //
+function editTask(e) {
+  var task_id = sessionStorage.getItem('current_id');
+  var task_name = $('#task_name').val();  
+  var category = $('#category').val();
+  var due_date = $('#due_date').val();
+  var is_urgent = $('#is_urgent').val();
 
+  $.ajax({
+    url:'https://api.mlab.com/api/1/databases/taskmanager/collections/tasks/'+task_id+'?apiKey='+apiKey, 
+    data: JSON.stringify({
+      "task_name": task_name,
+      "category" : category,
+      "due_date": due_date,
+      "is_urgent": is_urgent
+    }),
+    type:'PUT',
+    contentType: 'application/json',
+    success: function(data) {
+      //if the post request is successful, redirect user to index.html. 
+      window.location.href='index.html';
+    },
+    error: function(xhr, status, err){
+      console.log(err);
+    }
+  });
+  e.preventDefault();
+}
 
 function getCategoryOptions() {
   $.get('https://api.mlab.com/api/1/databases/taskmanager/collections/categories?apiKey='+apiKey, function(data){

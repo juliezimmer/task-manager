@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="/css/bootstrap.css">
+  <link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="container">
+    <div class="header clearfix">
+      <nav>
+        <ul class="nav nav-pills pull-right">
+          <li role="presentation">
+            <a href="index.html">Home</a></li>
+          <li role="presentation"><a href="AddTask.html">Add Task</a></li>
+          <li role="presentation"><a href="categories.html">Manage Categories</a></li>
+        </ul>
+      </nav>
+      <h3 class="text-muted">Task Manager</h3>
+    </div>
+
+    <div class="row marketing">
+      <div class="col-lg-12">
+        <h2 class="page-header">Edit Task</h2>
+        <form id="edit_task">
+          <!-- Task Name -->
+          <div class="form-group">
+            <label>Task Name</label>
+            <input type="text" class="form-control" name="task_name" id="task_name" placeholder="Task Name">
+          </div> <!-- end task name -->
+          
+          <!-- Category -->
+          <div class="form-group">
+            <label>Category</label>
+            <select class="form-control" name="category" id="category">
+            
+            </select>
+          </div> <!-- end Category -->
+
+          <!-- Due Date -->
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" class="form-control" name="due_date" id="due_date">
+          </div> <!-- end form-group -->
+
+          <!-- Urgent status -->
+          <div class="form-group">
+            <label>Urgent</label>
+            <select class="form-control" name="is_urgent" id="is_urgent">
+              <option value="false">No</option>
+              <option value="true">Yes</option>
+            </select>
+          </div> <!-- end form-group -->
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div> <!-- end tasks -->
+    </div>
+
+    <footer class="footer">
+      <p>&copy; 2016 Company, Inc.</p>
+    </footer>
+  </div> <!-- /container -->
+
+  <script src="/vendors/jquery-3.2.1.min.js"></script>
+  <script src="/js/bootstrap.js"></script> 
+  <script src="/js/main.js"></script> 
+
+  <script>
+    var id = sessionStorage.getItem('current_id');
+    getTask(id);
+  </script>
+
+</body>
+</html>
